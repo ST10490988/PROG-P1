@@ -1,0 +1,133 @@
+package main.java;
+
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+/**
+ * Login class for user registration and authentication
+ * @author ST10490988
+ * @version 1.0
+ * 
+ * Reference for cell phone regex: 
+ * Adapted from South African mobile number format documentation
+ * Source: https://en.wikipedia.org/wiki/Telephone_numbers_in_South_Africa
+ */
+public class Login {
+    
+    private String username;
+    private String password;
+    private String cellPhoneNumber;
+    private String firstName;
+    private String lastName;
+    private boolean isRegistered = false;
+    
+    private Scanner scanner = new Scanner(System.in);
+    
+    // Username validation: contains underscore and max 5 characters
+    public boolean checkUserName(String username) {
+        if (username == null || username.length() > 5 || !username.contains("_")) {
+            return false;
+        }
+        return true;
+    }
+    
+    // Password complexity validation
+    public boolean checkPasswordComplexity(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        
+        // Check for capital letter
+        if (!Pattern.compile("[A-Z]").matcher(password).find()) {
+            return false;
+        }
+        
+        // Check for number
+        if (!Pattern.compile("[0-9]").matcher(password).find()) {
+            return false;
+        }
+        
+        // Check for special character
+        if (!Pattern.compile("[^A-Za-z0-9]").matcher(password).find()) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Cell phone validation: SA international format +27 followed by 9 digits
+    public boolean checkCellPhoneNumber(String cellPhone) {
+        // Regex for South African mobile: +27 followed by 9 digits (8 or 9 starting with 8/7)
+        String saMobileRegex = "^\\+27[8-9]\\d{8}$";
+        return Pattern.matches(saMobileRegex, cellPhone);
+    }
+    
+    public String registerUser() {
+        System.out.println("=== REGISTRATION ===");
+        
+        // Get username
+        System.out.print("Enter username (max 5 chars with underscore): ");
+        this.username = scanner.nextLine();
+        if (!checkUserName(username)) {
+            return "Username is not correctly formatted; please ensure that your username contains an underscore and is no more than five characters in length.";
+        }
+        System.out.println("Username successfully captured.");
+        
+        // Get password
+        System.out.print("Enter password (8+ chars, capital, number, special char): ");
+        this.password = scanner.nextLine();
+        if (!checkPasswordComplexity(password)) {
+            return "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.";
+        }
+        System.out.println("Password successfully captured.");
+        
+        // Get cell phone
+        System.out.print("Enter cell phone number (+27xxxxxxxxx): ");
+        this.cellPhoneNumber = scanner.nextLine();
+        if (!checkCellPhoneNumber(cellPhoneNumber)) {
+            return "Cell phone number incorrectly formatted or does not contain international code.";
+        }
+        System.out.println("Cell phone number successfully added.");
+        
+        // Extract first and last name from username (split by underscore)
+        String[] nameParts = username.split("_");
+        this.firstName = nameParts[0];
+        this.lastName = nameParts.length > 1 ? nameParts[1] : "";
+        
+        this.isRegistered = true;
+        return "User registered successfully!";
+    }
+    
+    public boolean loginUser(String inputUsername, String inputPassword) {
+        return isRegistered && 
+               inputUsername.equals(this.username) && 
+               inputPassword.equals(this.password);
+    }
+    
+    public String returnLoginStatus(String inputUsername, String inputPassword) {
+        if (loginUser(inputUsername, inputPassword)) {
+            return "Welcome " + firstName + " " + lastName + ", it is great to see you again.";
+        } else {
+            return "Username or password incorrect, please try again.";
+        }
+    }
+    
+    // Main method for console application
+    public static void main(String[] args) {
+        Login loginSystem = new Login();
+        
+        // Registration
+        String regResult = loginSystem.registerUser();
+        System.out.println(regResult);
+        
+        if (loginSystem.isRegistered) {
+            System.out.println("\n=== LOGIN ===");
+            System.out.print("Enter username: ");
+            String loginUser = new Scanner(System.in).nextLine();
+            System.out.print("Enter password: ");
+            String loginPass = new Scanner(System.in).nextLine();
+            
+            System.out.println(loginSystem.returnLoginStatus(loginUser, loginPass));
+        }
+    }
+}
